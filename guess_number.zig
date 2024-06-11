@@ -32,19 +32,29 @@ pub fn main() !void {
 	// 	std.debug.print("it is an odd number.\n", .{});
 	// }
 
-	var guess_count: i8 = 1;
-	while(guess_count <= max_guesses) {
-		std.debug.print("Your guess #{}: ", .{guess_count});
+	var num_guesses: i8 = 1;
+	while(num_guesses <= max_guesses) {
+		std.debug.print("Your guess #{}: ", .{num_guesses});
 
 		var input: [2]u8 = undefined;
 		const num_bytes = try reader.read(&input);
 		if(input[num_bytes - 1] != '\n') {
-			std.debug.print("Error: too much input!\n", .{});
+			std.debug.print("It's a single digit number... ;)\n", .{});
 			try reader.skipUntilDelimiterOrEof('\n');
 			continue;
 		}
 
-		const users_guess: i8 = try std.fmt.parseInt(i8, input[0..(num_bytes-1)], 10); //@ handle error.InvalidCharacter
+		const users_guess: i8 =
+		std.fmt.parseInt(i8, input[0..(num_bytes-1)], 10)
+		catch |err| {
+			if(err == std.fmt.ParseIntError.InvalidCharacter) {
+				std.debug.print("Only digits please!\n", .{});
+				continue;
+			} else {
+				return err;
+			}
+		};
+
 		if(users_guess == secret_number) {
 			user_guessed_correctly = true;
 			break;
@@ -54,7 +64,7 @@ pub fn main() !void {
 			std.debug.print("Go lower...\n", .{});
 		}
 
-		guess_count += 1;
+		num_guesses += 1;
 	}
 
 	if(user_guessed_correctly == true) {
